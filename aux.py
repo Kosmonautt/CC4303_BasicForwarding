@@ -51,44 +51,23 @@ def create_packet(parsed_IP_packet):
 # IP_packet_v2 = IP_packet_v2_str.encode()
 # print("IP_packet_v1 == IP_packet_v2 ? {}".format(IP_packet_v1 == IP_packet_v2))
 
-# función que recibe el nombre del archivo con la rutas y la dirección de destino, retorna el par
-# con la dirección de hacia donde debe "saltar", si no encuntrea ninguno retorna none
-def check_routes(routes_file_name, destination_address):
-    # variable que almacenará las lineas de la tabla
-    f_lines = None
+# función que recibe el nombre del archivo con la rutas, la dirección de destino y el objeto ForwardList,
+# retorna el par con la dirección de hacia donde debe "saltar", si no encuntrea ninguno retorna none
+def check_routes(r_lines, destination_address, forwardList):
+    
+    # se debe recivsar si la dirección de destino no está en la lista de Forward
+    if(not (forwardList.in_forward_list(destination_address))):
+        # si no está, se debe agregar a la lista un objeto
 
-    # se abre el archivo con la tabla de rutas
-    with open(routes_file_name) as f:
-        # se leen todas las líneas y se guardan en una lista
-        f_lines = f.readlines()
-
-    # se obtienen la dirección IP y puerto de destino
-    ip_destination = destination_address[0]
-    port_destination = int(destination_address[1])
-
-    # variable que guardará el valor de retorno (dir del sgte salto)
-    nxt_jump = None
-
-    # se lee cada linea de la tabla
-    for line in f_lines:
-        # se divide la línea por componente
-        line = line.split()
+        # se crea el nuevo objeto
+        new_forward = Forward(destination_address)
+        # se le incializa su lista
+        new_forward.innit_jump_list(r_lines)
+        # se agrega a forward list
+        forwardList.add_forward(new_forward)
         
-        # IP que reprsenta la red
-        cidr = line[0]
-        # rangos de los puertos
-        inf_r = int(line[1])
-        sup_r = int(line[2])
-
-        # si se encuentra la línea
-        if((ip_destination == cidr) and ((inf_r <= port_destination) and (port_destination <= sup_r))):
-            # se actualiza nxt_jump
-            nxt_jump = (line[3], int(line[4]))
-            # se sale del for
-            break
-        
-    # se retorna la dirección
-    return nxt_jump
+    # se retorna la dirección de salto
+    return forwardList.get_nxt_jump(destination_address)
 
 # clase que representa todas las posibles salidas del router para una dirección de destino específica, en el router actual
 class Forward:
@@ -105,7 +84,7 @@ class Forward:
 
         # se obtienen la dirección IP y puerto de destino
         ip_destination = self.destination_address[0]
-        port_destination = int(self.destination_address[1])
+        port_destination = self.destination_address[1]
 
         # se lee cada linea de la tabla
         for line in route_table:

@@ -16,6 +16,17 @@ route_table = sys.argv[3]
 router_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 # se le hace bind a su dirección dada
 router_socket.bind((ip, port))
+# se crea el objeto para guardar las tablas de saltos
+forwardList = aux.ForwardList((ip, port))
+
+# variable que almacenará las lineas de la tabla
+r_lines = None
+
+# se abre el archivo con la tabla de rutas
+with open(route_table) as f:
+    # se leen todas las líneas y se guardan en una lista
+    r_lines = f.readlines()
+
 
 # ciclo while donde se reciben mensajes
 while True:
@@ -31,7 +42,7 @@ while True:
     # si no, se debe hacer forwarding
     else:
         # se consigue la ruta para hacer forwarding
-        nxt_dir = aux.check_routes(route_table, (struct_mssg[0], struct_mssg[1]))
+        nxt_dir = aux.check_routes(r_lines, (struct_mssg[0], int(struct_mssg[1])), forwardList)
 
         # si es None, se descarta, si no, se hace forwarding
         if(nxt_dir == None):
