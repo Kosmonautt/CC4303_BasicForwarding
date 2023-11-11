@@ -29,7 +29,7 @@ def parse_packet(IP_packet):
             mssg += ","
 
     # se retorna la estrcutura
-    return [ip, port, mssg]
+    return [ip, int(port), mssg]
 
 # función que recibe una estrcutra y la transforma en un mensaje
 def create_packet(parsed_IP_packet):
@@ -38,7 +38,7 @@ def create_packet(parsed_IP_packet):
 
     # se obtiene cada parte del mensaje
     IP = parsed_IP_packet[0]
-    port = parsed_IP_packet[1]
+    port = str(parsed_IP_packet[1])
     mssg = parsed_IP_packet[2]
 
     # se retorna el mensaje final
@@ -83,7 +83,7 @@ def check_routes(routes_file_name, destination_address):
         # si se encuentra la línea
         if((ip_destination == cidr) and ((inf_r <= port_destination) and (port_destination <= sup_r))):
             # se actualiza nxt_jump
-            nxt_jump = (line[3], line[4])
+            nxt_jump = (line[3], int(line[4]))
             # se sale del for
             break
         
