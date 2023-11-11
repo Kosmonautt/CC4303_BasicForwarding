@@ -89,3 +89,92 @@ def check_routes(routes_file_name, destination_address):
         
     # se retorna la dirección
     return nxt_jump
+
+# clase que representa todas las posibles salidas del router para una dirección de destino específica, en el router actual
+class Forward:
+    def __init__(self, destination_address):
+        self.destination_address = destination_address
+        self.jumps = None
+        self.i = None
+        self.len = None
+
+    # función que inicializa la lista con todas las posibles salidas
+    def innit_jump_list(self, route_table):
+        # la lista de saltos se inicializa como una lista vacía
+        self.jumps = []
+
+        # se obtienen la dirección IP y puerto de destino
+        ip_destination = self.destination_address[0]
+        port_destination = int(self.destination_address[1])
+
+        # se lee cada linea de la tabla
+        for line in route_table:
+            # se divide la línea por componente
+            line = line.split()
+            
+            # IP que reprsenta la red
+            cidr = line[0]
+            # rangos de los puertos
+            inf_r = int(line[1])
+            sup_r = int(line[2])
+
+            # si se encuentra una línea que corresponde
+            if((ip_destination == cidr) and ((inf_r <= port_destination) and (port_destination <= sup_r))):
+                # se actualiza la lista con el par ip lista
+                self.jumps.append((line[3], int(line[4])))
+        
+        # se inicializa el índice
+        self.i = 0
+        # se guarda el largo de la lista
+        self.len = len(self.jumps)
+
+    # función que retorna el siguiente valor de la lista cíclica y actualiza el índice
+    def get_nxt_jump(self):
+        # si es que la lista es de tamaño 0 (vacía, osea no hay saltos) se retorna none
+        if (self.len == 0):
+            return None
+        
+        # se consigue el elemento de la lista
+        nxt_jump = self.jumps[self.i]
+        # se actualiza el índice
+        self.i = (self.i+1)%self.len
+        # se retorna el siguiente salto
+        return nxt_jump
+
+# clase que representa todas las listas de salidas de el router para cada dirección de destino
+class ForwardList:
+    def __init__(self, current_address):
+        self.current_address = current_address
+        self.forward_list = []
+
+    # función que agrega un objeto Forward a la lista
+    def add_forward(self, new_forward):
+        self.forward_list.append(new_forward)
+
+    # función que dice si es que se encuentra el objeto 
+    # asociado a la dirección de destino dada
+    def in_forward_list(self, destination_address):
+        # dice si está o no en la lista
+        in_list = False
+
+        # para cada obejto en la lista
+        for forward in self.forward_list:
+            # si la dirección de destino es correcta
+            if(forward.destination_address == destination_address):
+                # está en la lista
+                in_list = True
+        
+        return in_list
+
+    # función que recibe una dirección de destino (ip y puerto)
+    # y retorna el par (ip, puerto) que le corresponde del round 
+    # robin (puede ser None)
+    def get_nxt_jump(self, destination_address):
+        # para cada obejto en la lista
+        for forward in self.forward_list:
+            # si la dirección de destino es correcta
+            if(forward.destination_address == destination_address):
+                # se consigue el siguiente salto (y actualiza su indice)
+                nxt_jump = forward.get_nxt_jump()
+                # se retorna el valor
+                return nxt_jump
