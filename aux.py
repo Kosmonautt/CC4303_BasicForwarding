@@ -44,9 +44,48 @@ def create_packet(parsed_IP_packet):
     # se retorna el mensaje final
     return IP+separator+port+separator+mssg
 
-# test de funcionalidad
-IP_packet_v1 = "127.0.0.1,8881,hola, cómo estás?".encode()
-parsed_IP_packet = parse_packet(IP_packet_v1)
-IP_packet_v2_str = create_packet(parsed_IP_packet)
-IP_packet_v2 = IP_packet_v2_str.encode()
-print("IP_packet_v1 == IP_packet_v2 ? {}".format(IP_packet_v1 == IP_packet_v2))
+# # test de funcionalidad
+# IP_packet_v1 = "127.0.0.1,8881,hola, cómo estás?".encode()
+# parsed_IP_packet = parse_packet(IP_packet_v1)
+# IP_packet_v2_str = create_packet(parsed_IP_packet)
+# IP_packet_v2 = IP_packet_v2_str.encode()
+# print("IP_packet_v1 == IP_packet_v2 ? {}".format(IP_packet_v1 == IP_packet_v2))
+
+# función que recibe el nombre del archivo con la rutas y la dirección de destino, retorna el par
+# con la dirección de hacia donde debe "saltar", si no encuntrea ninguno retorna none
+def check_routes(routes_file_name, destination_address):
+    # variable que almacenará las lineas de la tabla
+    f_lines = None
+
+    # se abre el archivo con la tabla de rutas
+    with open(routes_file_name) as f:
+        # se leen todas las líneas y se guardan en una lista
+        f_lines = f.readlines()
+
+    # se obtienen la dirección IP y puerto de destino
+    ip_destination = destination_address[0]
+    port_destination = int(destination_address[1])
+
+    # variable que guardará el valor de retorno (dir del sgte salto)
+    nxt_jump = None
+
+    # se lee cada linea de la tabla
+    for line in f_lines:
+        # se divide la línea por componente
+        line = line.split()
+        
+        # IP que reprsenta la red
+        cidr = line[0]
+        # rangos de los puertos
+        inf_r = int(line[1])
+        sup_r = int(line[2])
+
+        # si se encuentra la línea
+        if((ip_destination == cidr) and ((inf_r <= port_destination) and (port_destination <= sup_r))):
+            # se actualiza nxt_jump
+            nxt_jump = (line[3], line[4])
+            # se sale del for
+            break
+        
+    # se retorna la dirección
+    return nxt_jump
