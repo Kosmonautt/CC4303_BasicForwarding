@@ -1,6 +1,6 @@
 import sys
 import socket
-import aux
+import aux_functions
 
 # tamaño del buffer
 buff_size = 48
@@ -17,7 +17,7 @@ router_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 # se le hace bind a su dirección dada
 router_socket.bind((ip, port))
 # se crea el objeto para guardar las tablas de saltos
-forwardList = aux.ForwardList((ip, port))
+forwardList = aux_functions.ForwardList((ip, port))
 
 # variable que almacenará las lineas de la tabla
 r_lines = None
@@ -33,7 +33,7 @@ while True:
     # se espera a obtener un mensaje
     mssg, address = router_socket.recvfrom(buff_size)
     # se pasa a estrcutura
-    struct_mssg = aux.parse_packet(mssg)
+    struct_mssg = aux_functions.parse_packet(mssg)
     
     # se revisa si el mensaje es para este router, si no, se hace forwarding
     if(struct_mssg[0] == ip and struct_mssg[1] == port):
@@ -42,7 +42,7 @@ while True:
     # si no, se debe hacer forwarding
     else:
         # se consigue la ruta para hacer forwarding
-        nxt_dir = aux.check_routes(r_lines, (struct_mssg[0], int(struct_mssg[1])), forwardList)
+        nxt_dir = aux_functions.check_routes(r_lines, (struct_mssg[0], int(struct_mssg[1])), forwardList)
 
         # si es None, se descarta, si no, se hace forwarding
         if(nxt_dir == None):
