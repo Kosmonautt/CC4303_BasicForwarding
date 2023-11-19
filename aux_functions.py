@@ -12,8 +12,10 @@ def parse_packet(IP_packet):
     ip = IP_packet[0]
     # se guarda el puerto
     port = IP_packet[1]
+    # se guarda el TTL
+    ttl = IP_packet[2]
     # el mensaje (quizá en forma de lista, osea con más de un elemento)
-    mssg_list = IP_packet[2:len(IP_packet)]
+    mssg_list = IP_packet[3:len(IP_packet)]
 
     # el mensaje en forma de string
     mssg = ""
@@ -29,7 +31,7 @@ def parse_packet(IP_packet):
             mssg += ","
 
     # se retorna la estrcutura
-    return [ip, int(port), mssg]
+    return [ip, int(port), int(ttl), mssg]
 
 # función que recibe una estrcutra y la transforma en un mensaje
 def create_packet(parsed_IP_packet):
@@ -39,13 +41,14 @@ def create_packet(parsed_IP_packet):
     # se obtiene cada parte del mensaje
     IP = parsed_IP_packet[0]
     port = str(parsed_IP_packet[1])
-    mssg = parsed_IP_packet[2]
+    ttl = str(parsed_IP_packet[2])
+    mssg = parsed_IP_packet[3]
 
     # se retorna el mensaje final
-    return IP+separator+port+separator+mssg
+    return IP+separator+port+separator+ttl+separator+mssg
 
 # # test de funcionalidad
-# IP_packet_v1 = "127.0.0.1,8881,hola, cómo estás?".encode()
+# IP_packet_v1 = "127.0.0.1,8881,10,hola, cómo estás?".encode()
 # parsed_IP_packet = parse_packet(IP_packet_v1)
 # IP_packet_v2_str = create_packet(parsed_IP_packet)
 # IP_packet_v2 = IP_packet_v2_str.encode()

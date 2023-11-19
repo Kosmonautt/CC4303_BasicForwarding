@@ -34,24 +34,35 @@ while True:
     mssg, address = router_socket.recvfrom(buff_size)
     # se pasa a estrcutura
     struct_mssg = aux_functions.parse_packet(mssg)
-    
-    # se revisa si el mensaje es para este router, si no, se hace forwarding
-    if(struct_mssg[0] == ip and struct_mssg[1] == port):
-        # se imprime el mensaje (sin headers)
-        print(struct_mssg[2])
-    # si no, se debe hacer forwarding
-    else:
-        # se consigue la ruta para hacer forwarding
-        nxt_dir = aux_functions.check_routes(r_lines, (struct_mssg[0], int(struct_mssg[1])), forwardList)
 
-        # si es None, se descarta, si no, se hace forwarding
-        if(nxt_dir == None):
-            print("No hay rutas hacia {} para paquete {}".format(struct_mssg[1], struct_mssg[0]))
+    # se consigue el ttl
+    ttl = struct_mssg[2]
+
+    # si es 0 o menor, se debe ignorar el mensaje 
+    if(ttl<=0):
+        print("Se recibió paquete {} con TTL 0".format(struct_mssg[0]))
+    # si el TTL no es 0, entonces se puede procesar
+    else:
+        # se revisa si el mensaje es para este router, si no, se hace forwarding
+        if(struct_mssg[0] == ip and struct_mssg[1] == port):
+            # se imprime el mensaje (sin headers)
+            print(struct_mssg[3])
+        # si no, se debe hacer forwarding
         else:
-            # se imprime el forwarding que se realiza
-            print("redirigiendo paquete {} con destino final {} desde {} hacia {}".format(struct_mssg[0], struct_mssg[1], port, nxt_dir[1]))
-            # se hace el forwarding            
-            router_socket.sendto(mssg, nxt_dir)
+            # se consigue la ruta para hacer forwarding
+            nxt_dir = aux_functions.check_routes(r_lines, (struct_mssg[0], int(struct_mssg[1])), forwardList)
+
+            # si es None, se descarta, si no, se hace forwarding
+            if(nxt_dir == None):
+                print("No hay rutas hacia {} para paquete {}".format(struct_mssg[1], struct_mssg[0]))
+            else:
+                # se debe disminuir su ttl, se crea un mensaje igual pero con el ttl disminuido en 1
+                mssg = (aux_functions.create_packet([struct_mssg[0],struct_mssg[1],struct_mssg[2]-1,struct_mssg[3]])).encode()
+
+                # se imprime el forwarding que se realiza
+                print("redirigiendo paquete {} con destino final {} desde {} hacia {}".format(struct_mssg[0], struct_mssg[1], port, nxt_dir[1]))
+                # se hace el forwarding            
+                router_socket.sendto(mssg, nxt_dir)
 
 
 
